@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Мой лендинг</title>
+</head>
+<body>
+  <h1>Добро пожаловать!</h1>
+  <div id="user-list"></div>
+  <script>
+    fetch('/api/users')
+      .then(res => res.json())
+      .then(users => {
+        document.getElementById('user-list').innerHTML = users.map(u => `<p>${u.name} (${u.email})</p>`).join('');
+      });
+  </script>
+</body>
+</html>
