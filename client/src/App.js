@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import './App.css';
 
 function App() {
   const [users, setUsers] = useState([]);
@@ -16,7 +17,7 @@ function App() {
       });
       setUsers(res.data);
     } catch (err) {
-      console.error('Ошибка загрузки пользователей:', err);
+      console.error('Ошибка загрузки:', err);
     }
   }, [token]);
 
@@ -26,45 +27,29 @@ function App() {
 
   const handleAuth = async (e) => {
     e.preventDefault();
-    
-    const data = { name, email, password };
-    console.log('Отправляю:', data);  // для отладки
-    
     try {
       const url = isLogin ? '/api/auth/login' : '/api/auth/register';
-      const res = await axios.post(url, data);
-      
+      const res = await axios.post(url, { name, email, password });
       if (res.data.token) {
         localStorage.setItem('token', res.data.token);
         setToken(res.data.token);
       }
-      
-      setName('');
-      setEmail('');
-      setPassword('');
+      setName(''); setEmail(''); setPassword('');
     } catch (err) {
-      const errorMsg = err.response?.data?.error || err.message;
-      console.error('Ошибка:', errorMsg);
-      alert('Ошибка: ' + errorMsg);
+      alert('Ошибка: ' + (err.response?.data?.error || err.message));
     }
   };
 
   const createUser = async (e) => {
     e.preventDefault();
-    
-    const data = { name, email };
-    console.log('Создаю пользователя:', data);
-    
     try {
-      await axios.post('/api/users', data, {
+      await axios.post('/api/users', { name, email }, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setName('');
-      setEmail('');
+      setName(''); setEmail('');
       fetchUsers();
     } catch (err) {
-      const errorMsg = err.response?.data?.error || err.message;
-      alert('Ошибка создания пользователя: ' + errorMsg);
+      alert('Ошибка: ' + (err.response?.data?.error || err.message));
     }
   };
 
@@ -75,82 +60,70 @@ function App() {
 
   if (!token) {
     return (
-      <div style={{ maxWidth: 400, margin: '50px auto', padding: 20 }}>
-        <h1>{isLogin ? 'Вход' : 'Регистрация'}</h1>
-        <form onSubmit={handleAuth}>
-          <input 
-            value={name} 
-            onChange={e => setName(e.target.value)} 
-            placeholder="Имя" 
-            required 
-            style={{ display: 'block', width: '100%', margin: '10px 0', padding: 10 }} 
-          />
-          <input 
-            value={email} 
-            onChange={e => setEmail(e.target.value)} 
-            placeholder="Email" 
-            type="email" 
-            required 
-            style={{ display: 'block', width: '100%', margin: '10px 0', padding: 10 }} 
-          />
-          <input 
-            value={password} 
-            onChange={e => setPassword(e.target.value)} 
-            placeholder="Пароль" 
-            type="password" 
-            required 
-            style={{ display: 'block', width: '100%', margin: '10px 0', padding: 10 }} 
-          />
-          <button type="submit" style={{ width: '100%', padding: 10 }}>
-            {isLogin ? 'Войти' : 'Зарегистрироваться'}
+      <div className="auth-container">
+        <div className="auth-card">
+          <div style={{ fontSize: 50, marginBottom: 10 }}>🐱🎀</div>
+          <div className="auth-header">
+            <h1>{isLogin ? 'Вход' : 'Регистрация'}</h1>
+            <p>{isLogin ? 'Добро пожаловать обратно!' : 'Создай новый аккаунт'}</p>
+          </div>
+          <form onSubmit={handleAuth}>
+            <div className="form-group">
+              <label>💝 Имя</label>
+              <input value={name} onChange={e => setName(e.target.value)} placeholder="Твоё имя..." required />
+            </div>
+            <div className="form-group">
+              <label>📧 Email</label>
+              <input value={email} onChange={e => setEmail(e.target.value)} placeholder="hello@kitty.com" type="email" required />
+            </div>
+            <div className="form-group">
+              <label>🔒 Пароль</label>
+              <input value={password} onChange={e => setPassword(e.target.value)} placeholder="Секретный пароль" type="password" required />
+            </div>
+            <button type="submit" className="btn-primary">
+              {isLogin ? '🐱 Войти' : '🎀 Зарегистрироваться'}
+            </button>
+          </form>
+          <button onClick={() => setIsLogin(!isLogin)} className="btn-link">
+            {isLogin ? 'Нет аккаунта? Регистрация' : 'Уже есть аккаунт? Войти'}
           </button>
-        </form>
-        <button 
-          onClick={() => setIsLogin(!isLogin)} 
-          style={{ marginTop: 10, width: '100%', padding: 10 }}
-        >
-          {isLogin ? 'Нет аккаунта? Зарегистрироваться' : 'Уже есть аккаунт? Войти'}
-        </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div style={{ maxWidth: 600, margin: '0 auto', padding: 20 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h1>Добро пожаловать!</h1>
-        <button onClick={logout}>Выйти</button>
+    <div className="main-container">
+      <header className="main-header">
+        <h1>🐱 Hello Kitty Dashboard 🎀</h1>
+        <button onClick={logout} className="btn-logout">Выйти</button>
+      </header>
+
+      <div className="card">
+        <h2>✨ Создать нового друга ✨</h2>
+        <form onSubmit={createUser} className="create-form">
+          <input value={name} onChange={e => setName(e.target.value)} placeholder="🌸 Имя" required />
+          <input value={email} onChange={e => setEmail(e.target.value)} placeholder="📧 Email" type="email" required />
+          <button type="submit" className="btn-primary">🎀 Создать</button>
+        </form>
       </div>
 
-      <form onSubmit={createUser} style={{ marginBottom: 20 }}>
-        <input 
-          value={name} 
-          onChange={e => setName(e.target.value)} 
-          placeholder="Имя" 
-          required 
-          style={{ marginRight: 10, padding: 5 }} 
-        />
-        <input 
-          value={email} 
-          onChange={e => setEmail(e.target.value)} 
-          placeholder="Email" 
-          type="email" 
-          required 
-          style={{ marginRight: 10, padding: 5 }} 
-        />
-        <button type="submit">Создать пользователя</button>
-      </form>
-
-      <h2>Список пользователей:</h2>
-      {users.length === 0 ? (
-        <p>Пока нет пользователей</p>
-      ) : (
-        <ul>
-          {users.map(u => (
-            <li key={u.id}>{u.name} ({u.email})</li>
-          ))}
-        </ul>
-      )}
+      <div className="card">
+        <h2>💖 Мои друзья ({users.length}) 💖</h2>
+        {users.length === 0 ? (
+          <p className="empty-state">Пока нет друзей... Создай первого! 🐱</p>
+        ) : (
+          users.map(u => (
+            <div key={u.id} className="user-card">
+              <div className="user-avatar">{u.name[0].toUpperCase()}</div>
+              <div className="user-info">
+                <strong>🌸 {u.name}</strong>
+                <span>📧 {u.email}</span>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 }
