@@ -1,0 +1,70 @@
+
+services:
+  # PostgreSQL
+  postgres:
+    image: postgres:16-alpine
+    container_name: kr5_postgres
+    environment:
+      POSTGRES_DB: kr5_database
+      POSTGRES_USER: kr5_user
+      POSTGRES_PASSWORD: Kr5_database
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: kr5_redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  # RabbitMQ
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: kr5_rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    restart: unless-stopped
+
+  # Express сервер
+  app:
+    build: .
+    container_name: kr5_app
+    ports:
+      - "3001:3001"
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+    environment:
+      DB_NAME: kr5_database
+      DB_USER: kr5_user
+      DB_PASSWORD: Kr5_database
+      DB_HOST: postgres
+      REDIS_URL: redis://redis:6379
+      RABBITMQ_URL: amqp://rabbitmq
+      PORT: 3001
+      JWT_SECRET: my_super_secret_key_2025
+    restart: unless-stopped
+    command: >
+      sh -c "sleep 10 && node scripts/createAdmin.js && node server.js"
+
+  # Worker
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    container_name: kr5_worker
+    depends_on:
+      - rabbitmq
+    environment:
+      RABBITMQ_URL: amqp://rabbitmq
+    restart: unless-stopped
+
+volumes:
+  pgdata:
